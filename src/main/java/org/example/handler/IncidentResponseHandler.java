@@ -7,16 +7,27 @@ import com.amazonaws.services.lambda.runtime.LambdaLogger;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagement;
 import com.amazonaws.services.identitymanagement.AmazonIdentityManagementClientBuilder;
 import com.amazonaws.services.identitymanagement.model.*;
+import com.amazonaws.services.sns.AmazonSNS;
+import com.amazonaws.services.sns.AmazonSNSClientBuilder;
+import com.amazonaws.services.sns.model.PublishRequest;
+import com.amazonaws.services.sns.model.PublishResult;
 
 import java.util.Map;
 
 public class IncidentResponseHandler implements RequestHandler<Map<String, String>, String> {
     
     private AmazonIdentityManagement iamClient;
+    private AmazonSNS snsClient;
     
     // Default constructor uses the default client from AWS SDK
     public IncidentResponseHandler() {
         this.iamClient = AmazonIdentityManagementClientBuilder.defaultClient();
+        this.snsClient = AmazonSNSClientBuilder.defaultClient();
+    }
+    
+    // Setter method to inject SNS client (used in tests)
+    public void setSnsClient(AmazonSNS snsClient) {
+        this.snsClient = snsClient;
     }
     
     // Setter method to inject IAM client (used in tests)
@@ -69,6 +80,11 @@ public class IncidentResponseHandler implements RequestHandler<Map<String, Strin
             logger.log("[SUCCESS] All access keys deleted for user: " + userName);
             
             logger.log("[INFO] Incident response completed successfully for user: " + userName);
+            
+            // Send SNS notification to security team
+            String message = "Incident response actions for user: " + userName + " completed successfully. MFA, login profile, and access keys have been disabled.";
+            sendSnsNotification(message);
+            
             return "Success: User " + userName + " disabled.";
         } catch (NoSuchEntityException e) {
             logger.log("[ERROR] User " + userName + " does not exist.");
@@ -79,6 +95,19 @@ public class IncidentResponseHandler implements RequestHandler<Map<String, Strin
         } catch (Exception e) {
             logger.log("[ERROR] An unexpected error occurred: " + e.getMessage());
             return "Failed: Unexpected error: " + e.getMessage();
+        }
+    }
+    
+    // Send SNS notification
+    private void sendSnsNotification(String message) {
+        try {
+            String snsTopicArn = "arn:aws:sns:us-east-1:239273560241:IncidentResponseNotifications";
+            
+            PublishRequest publishRequest = new PublishRequest(snsTopicArn, message);
+            PublishResult result = snsClient.publish(publishRequest);
+            System.out.println("SNS Notification sent: " + result.getMessageId());
+        } catch (Exception e) {
+            System.err.println("Failed to send SNS notification: " + e.getMessage());
         }
     }
 }

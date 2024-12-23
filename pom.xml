@@ -29,6 +29,15 @@
       <version>1.12.780</version>
     </dependency>
 
+    <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/iam -->
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>iam</artifactId>
+      <version>2.29.39</version>
+      <scope>test</scope>
+    </dependency>
+
+
     <!-- https://mvnrepository.com/artifact/com.amazonaws/aws-lambda-java-log4j2 -->
     <dependency>
       <groupId>com.amazonaws</groupId>
@@ -68,5 +77,29 @@
       <scope>test</scope>
     </dependency>
 
+    <!-- AWS SDK for SNS -->
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-sns</artifactId>
+      <version>1.12.780</version>
+    </dependency>
   </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-shade-plugin</artifactId>
+        <version>3.2.4</version>
+        <executions>
+          <execution>
+            <phase>package</phase>
+            <goals>
+              <goal>shade</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
