@@ -16,23 +16,11 @@ This project provides an automated solution for responding to **AWS GuardDuty Fi
 
 ---
 
-## Architecture
+## Architecture Diagram
 
-```text
-+-----------------+     +----------------+     +----------------+     +------------------+
-| AWS GuardDuty   | --> | EventBridge    | --> | Lambda Function | --> | SNS Notification |
-+-----------------+     +----------------+     +----------------+     +------------------+
-                                                      |
-                                                      v
-                                            +------------------+
-                                            | CloudWatch Alarm |
-                                            +------------------+
-                                                      |
-                                                      v
-                                            +------------------+
-                                            | SNS Notification |
-                                            +------------------+
-```
+<img src="https://github.com/gitkailash/Compromised-IAM-User-Incident-Response/blob/master/src/main/java/resources/GuardDuty-architecture.png" alt="Architecture Diagram"/>
+
+---
 1. **GuardDuty**: Detects suspicious IAM user behavior.
 2. **EventBridge**: Routes GuardDuty findings to the Lambda function.
 3. **Lambda Function**:
@@ -191,35 +179,14 @@ aws guardduty create-sample-findings --detector-id $DETECTOR_ID --finding-types 
 ---
 
 ## CloudWatch Logs
-Example log output after Lambda execution:
-
-```
-[Info]: Finding Type: Recon: IAMUser/MaliciousIPCaller
-[Info]: IAM User: TestUser
-[Info]: Fetching MFA devices for user: TestUser
-[Info]: Deactivating MFA device: arn:aws:iam::123456789012:mfa/TestUserMFA
-[Info]: Disabling login profile for user: TestUser
-[Info]: Deleting access key: AKIA1234567890EXAMPLE
-[Info]: Sending SNS notification.
-[Info]: SNS notification sent successfully.
-[Info]: Incident response completed.
-```
+Log Groups output after Lambda execution:
+![Log Groups Output](src/main/java/resources/log-group.PNG)  
 
 ---
 
 ## SNS Notification Format
-Example SNS message sent to the security team:
-
-```
-GuardDuty Incident Response Completed:
-Finding Type: Recon: IAMUser/MaliciousIPCaller
-Region: us-east-1
-User Type: IAMUser
-Resource Type: AccessKey
-IAM User: TestUser
-MFA Status: MFA devices deactivated
-Access Keys Deleted: 2
-```
+SNS Notification sent to the security team:
+![Log Groups Output](src/main/java/resources/SNS-mail.PNG)  
 
 ---
 
