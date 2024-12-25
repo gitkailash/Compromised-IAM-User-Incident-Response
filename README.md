@@ -136,7 +136,43 @@ Set up the following EventBridge rule:
   }
 }
 ```
+## Sample JSON for Testing Lambda
+```json
+{
+  "detail": {
+    "schemaVersion": "2.0",
+    "accountId": "123456789012",
+    "region": "us-east-1",
+    "partition": "aws",
+    "id": "abc1234567890def1234567890abcdef",
+    "arn": "arn:aws:guardduty:us-east-1:123456789012:detector/xyz9876543210fedcba0987654321/deabc1234567890def1234567890abcdef",
+    "type": "Recon: IAMUser/MaliciousIPCaller",
+    "resource": {
+      "resourceType": "AccessKey",
+      "accessKeyDetails": {
+        "accessKeyId": "AKIAEXAM5LEACCESSKEY",
+        "principalId": "AIDABC3EFGHIJKLMNO",
+        "userType": "IAMUser",
+        "userName": "TestUserName"
+      }
+    }
+  }
+}
+```
+---
 
+## Sample AWS CLI (Optional)
+This step is optional.
+
+```bash
+DETECTOR_ID=$(aws guardduty list-detectors --query 'DetectorIds[0]' --output text --region us-east-1)
+
+aws guardduty create-sample-findings --detector-id $DETECTOR_ID --finding-types "Recon:IAMUser/MaliciousIPCaller"
+
+aws guardduty create-sample-findings --detector-id $DETECTOR_ID --finding-types "CredentialAccess:IAMUser/AnomalousBehavior"
+
+aws guardduty create-sample-findings --detector-id $DETECTOR_ID --finding-types "Discovery:IAMUser/AnomalousBehavior"
+```
 ---
 
 ## CloudWatch Logs
