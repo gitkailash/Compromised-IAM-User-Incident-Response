@@ -1,6 +1,6 @@
 # AWS GuardDuty Incident Response with Lambda, EventBridge, and SNS
 
-This project provides an automated solution for responding to **AWS GuardDuty Findings** using **EventBridge**, **AWS Lambda**, and **SNS**. The solution handles anomalous IAM user activities by deactivating MFA devices, disabling login profiles, deleting access keys, and notifying the security team.
+This project provides an automated solution for responding to **AWS GuardDuty Findings** using **EventBridge**, **AWS Lambda**, **SNS**, and **CloudWatch Alarms**. The solution handles anomalous IAM user activities by deactivating MFA devices, disabling login profiles, deleting access keys, and notifying the security team.
 
 ---
 
@@ -18,26 +18,41 @@ This project provides an automated solution for responding to **AWS GuardDuty Fi
 
 ## Architecture
 
-### High-Level Diagram
-```plaintext
+```text
 +-----------------+     +----------------+     +----------------+     +------------------+
 | AWS GuardDuty   | --> | EventBridge    | --> | Lambda Function | --> | SNS Notification |
 +-----------------+     +----------------+     +----------------+     +------------------+
+                                                      |
+                                                      v
+                                            +------------------+
+                                            | CloudWatch Alarm |
+                                            +------------------+
+                                                      |
+                                                      v
+                                            +------------------+
+                                            | SNS Notification |
+                                            +------------------+
 ```
-1. GuardDuty detects suspicious IAM user behavior.
-2. EventBridge routes findings to the Lambda function.
-3. Lambda performs the remediation actions.
-4. SNS notifies the security team.
-
+1. **GuardDuty**: Detects suspicious IAM user behavior.
+2. **EventBridge**: Routes GuardDuty findings to the Lambda function.
+3. **Lambda Function**:
+   - Performs remediation actions, such as deactivating MFA devices, disabling login profiles, and deleting access keys.
+   - Publishes error metrics to **CloudWatch**.
+4. **CloudWatch Alarm**: Monitors Lambda error metrics (e.g., `Errors`, `Throttles`).
+5. **SNS**: Sends notifications to the security team about remediation and alarms.
 ---
 
 ## Prerequisites
 
 1. **AWS Account**: Ensure you have access to an AWS account.
-2. **IAM Role for Lambda**: Create an IAM role with the necessary permissions.
-3. **SNS Topic**: Set up an SNS topic to send notifications.
+2. **IAM Role for Lambda**: Create an IAM role with the necessary permissions to:
+   - Read from EventBridge.
+   - Perform IAM actions (deactivate MFA, delete access keys, etc.).
+   - Write metrics to CloudWatch.
+   - Publish messages to SNS.
+3. **SNS Topic**: Set up an SNS topic to send notifications to the security team.
 4. **GuardDuty Enabled**: Activate GuardDuty in your AWS account.
-
+5. **CloudWatch Alarms**: Configure alarms for monitoring Lambda errors.
 ---
 
 ## Deployment Steps
